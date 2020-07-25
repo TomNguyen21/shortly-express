@@ -17,17 +17,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/', 
+app.get('/',
+  (req, res) => {
+    res.render('index');
+});
+
+app.get('/create',
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
-(req, res) => {
-  res.render('index');
-});
-
-app.get('/links', 
+app.get('/links',
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -38,7 +38,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
+app.post('/links',
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -78,7 +78,37 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
+// add our signup route here
+// app.post -> /signup, callback: req, res, body ->
+app.post('/signup', (req, res, next) => {
+  // check if provided username exists in our db
+  const {username, password} = req.body;
+  return models.Users.get({username})
+    // if it does, send back some sort of failure/redirect to signup
+    .then(response => {
+      if (response) {
+        res.redirect('/signup');
+      } else {
+        // if not, create a new user with given username and password using User.create
+        return models.Users.create(req.body)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
+    })
+    .error(err => console.log('what went wrong?!!', err))
+    // then redirect to index
+    .catch();
+});
 
+
+// add our login routes here
+// app.post -> /login, callback: req, res, body ->
+  // check if provided username exists in our db
+    // if not, send back a failure message
+    // if it does, then check provided is valid with Users.compare
+      // if not a match, error
+      // if it is a match, grant account access
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
