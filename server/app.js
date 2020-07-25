@@ -80,10 +80,10 @@ app.post('/links',
 
 // add our signup route here
 // app.post -> /signup, callback: req, res, body ->
-app.post('/signup', (req, res, next) => {
+app.post('/signup', (req, res) => {
   // check if provided username exists in our db
-  const {username, password} = req.body;
-  return models.Users.get({username})
+  const { username, password } = req.body;
+  return models.Users.get({ username })
     // if it does, send back some sort of failure/redirect to signup
     .then(response => {
       if (response) {
@@ -104,11 +104,28 @@ app.post('/signup', (req, res, next) => {
 
 // add our login routes here
 // app.post -> /login, callback: req, res, body ->
+app.post('/login', (req, res) => {
   // check if provided username exists in our db
-    // if not, send back a failure message
-    // if it does, then check provided is valid with Users.compare
-      // if not a match, error
-      // if it is a match, grant account access
+  const { username, password } = req.body;
+  return models.Users.get({ username })
+  .then( (response ) => {
+    if (!response) {
+      // if not, send back a failure message
+      res.redirect('/login');
+    } else {
+      // if it does, then check provided is valid with Users.compare
+      if (!models.Users.compare( password, response.password, response.salt )) {
+        // if not a match, error
+        res.redirect('/login');
+      } else {
+        // if it is a match, grant account access
+        res.redirect('/');
+      }
+    }
+  });
+});
+
+
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
