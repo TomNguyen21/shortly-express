@@ -17,18 +17,15 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 
 
-app.get('/',
-  (req, res) => {
-    res.render('index');
-});
-
-app.get('/create',
-(req, res) => {
+app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/links',
-(req, res, next) => {
+app.get('/create', (req, res) => {
+  res.render('index');
+});
+
+app.get('/links', (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -38,8 +35,7 @@ app.get('/links',
     });
 });
 
-app.post('/links',
-(req, res, next) => {
+app.post('/links', (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
@@ -90,7 +86,7 @@ app.post('/signup', (req, res) => {
         res.redirect('/signup');
       } else {
         // if not, create a new user with given username and password using User.create
-        return models.Users.create(req.body)
+        return models.Users.create({ username, password })
           .then(() => {
             res.redirect('/');
           });
@@ -108,21 +104,21 @@ app.post('/login', (req, res) => {
   // check if provided username exists in our db
   const { username, password } = req.body;
   return models.Users.get({ username })
-  .then( (response ) => {
-    if (!response) {
-      // if not, send back a failure message
-      res.redirect('/login');
-    } else {
-      // if it does, then check provided is valid with Users.compare
-      if (!models.Users.compare( password, response.password, response.salt )) {
-        // if not a match, error
+    .then( (response ) => {
+      if (!response) {
+        // if not, send back a failure message
         res.redirect('/login');
       } else {
-        // if it is a match, grant account access
-        res.redirect('/');
+        // if it does, then check provided is valid with Users.compare
+        if (!models.Users.compare( password, response.password, response.salt )) {
+          // if not a match, error
+          res.redirect('/login');
+        } else {
+          // if it is a match, grant account access
+          res.redirect('/');
+        }
       }
-    }
-  });
+    });
 });
 
 
